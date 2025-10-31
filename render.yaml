@@ -1,37 +1,22 @@
 services:
-  # --------------------
-  # 1. The FastAPI Backend (as a Docker container)
-  # --------------------
   - type: web
     name: statement-extractor-backend
     plan: free
-    
-    # Tell Render to use Docker and where to find the Dockerfile
     image:
-      dockerfilePath: ./backend/Dockerfile # Path from the root
-    
-    # Health check path (optional, but good)
+      dockerfilePath: ./backend/Dockerfile
     healthCheckPath: /
-    
-    # Environment variables
     envVars:
       - key: GOOGLE_API_KEY
         fromSecret: true
       - key: PORT 
         value: 8000
 
-  # --------------------
-  # 2. The Static Frontend (Corrected)
-  # --------------------
-  - type: web # <-- FIX: Changed from 'static' to 'web'
+  - type: web
     name: statement-extractor-frontend
-    runtime: static # <-- FIX: Added 'runtime: static'
+    runtime: static
     rootDir: frontend
     plan: free
-    
-    # FIX: 'staticPublishPath' is now 'publishDirectory'
     publishDirectory: . 
-    
     routes:
       - type: rewrite
         source: /*
