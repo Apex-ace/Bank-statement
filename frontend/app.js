@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 sortable: true, 
                 filter: true, 
                 flex: 1,
-                valueFormatter: params => '$' + params.value.toFixed(2), // Format as currency
+                valueFormatter: params => 'Rs' + params.value.toFixed(2), 
                 cellStyle: params => (params.data.transaction_type === 'Debit' ? { color: '#e74c3c' } : { color: '#2ecc71' })
             },
             { 
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 sortable: true, 
                 filter: true, 
                 flex: 1,
-                valueFormatter: params => params.value ? '$' + params.value.toFixed(2) : 'N/A'
+                valueFormatter: params => params.value ? 'Rs' + params.value.toFixed(2) : 'N/A'
             }
         ],
         defaultColDef: {
@@ -119,8 +119,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        totalCreditEl.textContent = `$${totalCredit.toFixed(2)}`;
-        totalDebitEl.textContent = `$${totalDebit.toFixed(2)}`;
+        totalCreditEl.textContent = `Rs${totalCredit.toFixed(2)}`;
+        totalDebitEl.textContent = `Rs${totalDebit.toFixed(2)}`;
         totalDebitEl.style.color = '#e74c3c';
         totalCreditEl.style.color = '#2ecc71';
     }
