@@ -6,15 +6,15 @@ services:
     name: statement-extractor-backend
     runtime: docker
     plan: free
-    
+
     dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend  # Tells Render to build from the /backend folder
-    
+    dockerContext: ./backend
+
     healthCheckPath: /
     envVars:
-      - key: PORT
-        value: 8000
       # GOOGLE_API_KEY will be added in the Render UI
+      # The 'PORT' variable is no longer needed here.
+      # Render will inject it automatically.
 
   # --------------------
   # 2. The Static Frontend
