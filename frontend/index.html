@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Statement Extractor</title>
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-quartz.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Statement Extractor</h1>
+            <p>Upload a PDF bank statement (text or scanned)</p>
+        </header>
+
+        <div class="card upload-card">
+            <h3>Upload Your Statement</h3>
+            <input type="file" id="pdfUpload" accept=".pdf" />
+            <button id="uploadButton">Process File</button>
+            <div id="loader" class="loader" style="display: none;"></div>
+            <div id="statusMessage"></div>
+        </div>
+
+        <div class="card results-card" style="display: none;">
+            <h3>Extracted Transactions</h3>
+            <div class="summary-bar">
+                <div>Total Credit: <strong id="totalCredit">...</strong></div>
+                <div>Total Debit: <strong id="totalDebit">...</strong></div>
+                <button id="exportCsvButton">Export to CSV</button>
+            </div>
+            <div id="transactionGrid" class="ag-theme-quartz" style="height: 500px; width: 100%;"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

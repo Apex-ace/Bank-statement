@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+python-multipart
+
+# PydanticAI + Gemini (Google) support
+pydantic-ai[google]
+google-generativeai
+
+# PDF and OCR utilities
+pymupdf
+pdf2image
+pytesseract
+Pillow
