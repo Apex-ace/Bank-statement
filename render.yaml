@@ -1,13 +1,13 @@
 services:
   # --------------------
-  # 1. The FastAPI Backend (Corrected)
+  # 1. The FastAPI Backend
   # --------------------
   - type: web
     name: statement-extractor-backend
+    runtime: docker # <-- THE FIX: This line was missing
     plan: free
     
-    # FIX: 'dockerfilePath' is a top-level key.
-    # The 'image:' block has been removed.
+    # This key is correct now that runtime is docker
     dockerfilePath: ./backend/Dockerfile 
     
     healthCheckPath: /
@@ -18,17 +18,14 @@ services:
         value: 8000
 
   # --------------------
-  # 2. The Static Frontend (Corrected)
+  # 2. The Static Frontend
   # --------------------
   - type: web
     name: statement-extractor-frontend
     runtime: static
     rootDir: frontend
     plan: free
-    
-    # FIX: 'publishDirectory' changed back to 'staticPublishPath'
     staticPublishPath: . 
-    
     routes:
       - type: rewrite
         source: /*
