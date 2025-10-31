@@ -62,7 +62,7 @@ You must have **Tesseract OCR** installed on your system. This is a system depen
 
 4.  **Set up your environment variables:**
 
-      * Rename `.env.example` to `.env`.
+      * Setup `.env`.
       * Edit the `.env` file and add your Google Gemini API key:
 
     <!-- end list -->
