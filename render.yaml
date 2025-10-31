@@ -6,16 +6,12 @@ services:
     name: statement-extractor-backend
     runtime: docker
     plan: free
-    
     dockerfilePath: ./backend/Dockerfile 
-    
     healthCheckPath: /
     envVars:
-      # --- FIX: Re-ordered to satisfy the linter ---
       - key: PORT
         value: 8000
-      - key: GOOGLE_API_KEY
-        fromSecret: true
+      # GOOGLE_API_KEY will be added in the Render UI
 
   # --------------------
   # 2. The Static Frontend
