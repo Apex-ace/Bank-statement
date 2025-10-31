@@ -4,18 +4,18 @@ services:
   # --------------------
   - type: web
     name: statement-extractor-backend
-    runtime: docker # <-- THE FIX: This line was missing
+    runtime: docker
     plan: free
     
-    # This key is correct now that runtime is docker
     dockerfilePath: ./backend/Dockerfile 
     
     healthCheckPath: /
     envVars:
-      - key: GOOGLE_API_KEY
-        fromSecret: true
+      # --- FIX: Re-ordered to satisfy the linter ---
       - key: PORT
         value: 8000
+      - key: GOOGLE_API_KEY
+        fromSecret: true
 
   # --------------------
   # 2. The Static Frontend
