@@ -43,7 +43,7 @@ You must have **Tesseract OCR** installed on your system. This is a system depen
 1.  **Clone the repository:**
 
     ```bash
-    git clone <your-repo-url>
+    git clone https://github.com/Apex-ace/Bank-statement
     cd pydanticai-statement-extractor/backend
     ```
 
