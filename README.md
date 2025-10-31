@@ -107,3 +107,5 @@ The frontend is a simple static site.
 5.  Wait for the loader to finish. The PydanticAI agent call can take 5-15 seconds.
 6.  View your structured, filterable transactions in the AG-Grid table\!
 7.  Click "Export to CSV" to download the data.
+
+## Disable Adblocker before your in demo link
