@@ -5,8 +5,11 @@ services:
   - type: web
     name: statement-extractor-backend
     runtime: docker
-    plan: free # This is correct for a web service
-    dockerfilePath: ./backend/Dockerfile 
+    plan: free
+    
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend  # Tells Render to build from the /backend folder
+    
     healthCheckPath: /
     envVars:
       - key: PORT
@@ -20,7 +23,6 @@ services:
     name: statement-extractor-frontend
     runtime: static
     rootDir: frontend
-    # FIX: Removed 'plan: free' - static sites are free by default
     staticPublishPath: . 
     routes:
       - type: rewrite
