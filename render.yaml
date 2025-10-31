@@ -4,7 +4,7 @@ services:
   # --------------------
   - type: web
     name: statement-extractor-backend
-    plan: free # Note: Docker builds on the free tier can be slow.
+    plan: free
     
     # Tell Render to use Docker and where to find the Dockerfile
     image:
@@ -17,17 +17,21 @@ services:
     envVars:
       - key: GOOGLE_API_KEY
         fromSecret: true
-      - key: PORT # Render sets this, Uvicorn will use it
+      - key: PORT 
         value: 8000
 
   # --------------------
-  # 2. The Static Frontend (no change)
+  # 2. The Static Frontend (Corrected)
   # --------------------
-  - type: static
+  - type: web # <-- FIX: Changed from 'static' to 'web'
     name: statement-extractor-frontend
+    runtime: static # <-- FIX: Added 'runtime: static'
     rootDir: frontend
     plan: free
-    staticPublishPath: .
+    
+    # FIX: 'staticPublishPath' is now 'publishDirectory'
+    publishDirectory: . 
+    
     routes:
       - type: rewrite
         source: /*
