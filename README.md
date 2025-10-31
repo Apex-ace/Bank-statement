@@ -51,7 +51,7 @@ You must have **Tesseract OCR** installed on your system. This is a system depen
 
     ```bash
     python -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
+    source venv/bin/activate  
     ```
 
 3.  **Install Python dependencies:**

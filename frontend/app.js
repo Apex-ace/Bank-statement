@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     
-    // --- AG-Grid Setup ---
+
     const gridOptions = {
-        // Define columns
+
         columnDefs: [
             { field: "date", sortable: true, filter: true, flex: 1 },
             { field: "description", sortable: true, filter: true, flex: 3 },
@@ -32,19 +32,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 valueFormatter: params => params.value ? '$' + params.value.toFixed(2) : 'N/A'
             }
         ],
-        // Default column properties
         defaultColDef: {
             resizable: true,
             filter: true,
         },
-        rowData: [] // Start with empty data
+        rowData: [] 
     };
 
-    // Initialize the grid and capture the API
+
     const gridDiv = document.querySelector('#transactionGrid');
     const gridApi = agGrid.createGrid(gridDiv, gridOptions);
 
-    // --- DOM Elements ---
+
     const uploadButton = document.getElementById('uploadButton');
     const pdfUpload = document.getElementById('pdfUpload');
     const statusMessage = document.getElementById('statusMessage');
@@ -54,13 +53,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalCreditEl = document.getElementById('totalCredit');
     const totalDebitEl = document.getElementById('totalDebit');
 
-    // --- Event Listeners ---
+
     uploadButton.addEventListener('click', handleUpload);
     exportCsvButton.addEventListener('click', () => {
         gridApi.exportDataAsCsv();
     });
 
-    // --- Functions ---
     async function handleUpload() {
         const file = pdfUpload.files[0];
         if (!file) {
@@ -71,7 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData();
         formData.append('file', file);
 
-        // Reset UI
         setStatus('Processing file...', 'info');
         loader.style.display = 'block';
         uploadButton.disabled = true;
@@ -86,27 +83,20 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (!response.ok) {
-                // Handle errors from the API
                 throw new Error(data.detail || 'An unknown error occurred.');
             }
 
-            // Success!
             setStatus(`Successfully extracted ${data.transactions.length} transactions.`, 'success');
             resultsCard.style.display = 'block';
             
-            // -----------------------------------------------------------------
-            //  ▼▼▼ THE FIX: 'setRowData' is now 'setGridOption' ▼▼▼
-            // -----------------------------------------------------------------
             gridApi.setGridOption('rowData', data.transactions);
             
-            // Calculate and display summary
             calculateSummary(data.transactions);
 
         } catch (error) {
             console.error('Upload failed:', error);
             setStatus(`Error: ${error.message}`, 'error');
         } finally {
-            // Re-enable UI
             loader.style.display = 'none';
             uploadButton.disabled = false;
         }

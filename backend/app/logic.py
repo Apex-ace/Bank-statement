@@ -13,7 +13,7 @@ from .models import StatementData
 # --- PydanticAI Setup with Gemini (via GoogleModel) ---
 # Ensure you have GOOGLE_API_KEY in your environment
 google_provider = GoogleProvider(api_key=os.getenv("GOOGLE_API_KEY"))
-llm = GoogleModel("gemini-2.5-flash", provider=google_provider)
+llm = GoogleModel("gemini-2.5-pro", provider=google_provider)
 agent = Agent(model=llm)
 
 
