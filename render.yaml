@@ -8,7 +8,7 @@ services:
     envVars:
       - key: GOOGLE_API_KEY
         fromSecret: true
-      - key: PORT 
+      - key: PORT  # <-- FIX: Removed the trailing space here
         value: 8000
 
   - type: web
@@ -16,7 +16,7 @@ services:
     runtime: static
     rootDir: frontend
     plan: free
-    publishDirectory: . 
+    publishDirectory: .
     routes:
       - type: rewrite
         source: /*
