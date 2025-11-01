@@ -20,6 +20,8 @@ This is a full-stack web application that extracts transaction data from PDF ban
   * **Data Grid:** AG-Grid (Community)
   * **PDF Processing:** PyMuPDF (text), Tesseract + pdf2image (OCR)
 
+## Demo link: https://statement-extractor-frontend.onrender.com/
+
 ## Setup & Installation
 
 ### Prerequisites
@@ -108,4 +110,4 @@ The frontend is a simple static site.
 6.  View your structured, filterable transactions in the AG-Grid table\!
 7.  Click "Export to CSV" to download the data.
 
-## Disable Adblocker before your in demo link
+## Disable Adblocker before you access the demo link.
