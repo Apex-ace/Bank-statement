@@ -20,7 +20,8 @@ This is a full-stack web application that extracts transaction data from PDF ban
   * **Data Grid:** AG-Grid (Community)
   * **PDF Processing:** PyMuPDF (text), Tesseract + pdf2image (OCR)
 
-## Demo link: https://statement-extractor-frontend.onrender.com/
+##  Prototype link: https://statement-extractor-frontend.onrender.com/
+## Demo video: https://drive.google.com/file/d/1UyTsMzsjxIm9fUePH1thOuQ77s9O1130/view?usp=sharing
 
 ## Setup & Installation
 
@@ -106,7 +107,7 @@ The frontend is a simple static site.
 2.  Open the `index.html` (or your live server URL) in your browser.
 3.  Click "Choose File" and select a sample PDF statement from the `samples/` directory or your own.
 4.  Click "Process File".
-5.  Wait for the loader to finish. The PydanticAI agent call can take 5-15 seconds.
+5.  Wait for the loader to finish. The PydanticAI agent call can take 2-3 Minutes.
 6.  View your structured, filterable transactions in the AG-Grid table\!
 7.  Click "Export to CSV" to download the data.
 
