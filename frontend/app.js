@@ -75,10 +75,10 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsCard.style.display = 'none';
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/upload', {
-                method: 'POST',
-                body: formData
-            });
+        const response = await fetch('https://statement-extractor-backend.onrender.com/upload', {
+            method: 'POST',
+            body: formData
+        });
 
             const data = await response.json();
 
