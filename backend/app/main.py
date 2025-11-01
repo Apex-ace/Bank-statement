@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-load_dotenv() # <-- MUST BE CALLED FIRST
+load_dotenv() 
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,15 +14,20 @@ app = FastAPI(
     description="Upload bank statements (PDF) and get structured JSON data back, powered by PydanticAI."
 )
 
-# --- CORS Middleware ---
-# Allow requests from our frontend
+origins = [
+    "https://statement-extractor-frontend.onrender.com", 
+    "http://localhost:3000", 
+    "http://127.0.0.1:3000"   
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict this to your frontend's domain
+    allow_origins=origins, # <-- Use the specific list here
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# --- End of FIX ---
 
 @app.get("/")
 def read_root():
