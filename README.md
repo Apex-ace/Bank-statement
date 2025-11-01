@@ -11,7 +11,7 @@ This is a full-stack web application that extracts transaction data from PDF ban
   * **Data Summary:** Calculates and displays total credit and debit amounts.
   * **CSV Export:** Includes a one-click button to export the grid data to CSV.
 
-## 🛠 Tech Stack
+## Tech Stack
 
   * **Agent Framework:** PydanticAI
   * **LLM:** Google Gemini
