@@ -110,4 +110,4 @@ The frontend is a simple static site.
 6.  View your structured, filterable transactions in the AG-Grid table\!
 7.  Click "Export to CSV" to download the data.
 
-## Disable Adblocker before your in demo link
+## Disable Adblocker before you access the demo link.
