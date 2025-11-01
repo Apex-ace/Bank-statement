@@ -111,3 +111,4 @@ The frontend is a simple static site.
 7.  Click "Export to CSV" to download the data.
 
 ## Disable Adblocker before you access the demo link.
+## As this is an prototype uplode file under 2 Mb 
