@@ -5,7 +5,7 @@ import pytesseract
 from pdf2image import convert_from_bytes
 import asyncio
 import io
-import platform 
+import platform
 
 from pydantic_ai import Agent
 from pydantic_ai.models.google import GoogleModel
@@ -17,7 +17,9 @@ try:
 except Exception:
     OPENAI_AVAILABLE = False
 
-from .models import RawStatementData
+# --- FIX: Removed the leading dot ---
+from models import RawStatementData
+# --- END FIX ---
 
 openai_agent = None
 google_agent = None
@@ -44,7 +46,6 @@ def get_text_from_pdf(file_bytes: bytes) -> str:
 
     if len(full_text.strip()) < 100:
         try:
-            # This is the simple, cross-platform version
             images = convert_from_bytes(file_bytes)
                 
             ocr_text = ""
