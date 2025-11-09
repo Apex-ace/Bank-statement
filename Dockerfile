@@ -8,4 +8,4 @@ COPY ./backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY ./backend/app/ .
 EXPOSE 10000
-CMD ["gunicorn", "-k", "uvicorn.workers.UvicornWorker", "-b", "0.0.0.0:$PORT", "main:app"]
+CMD gunicorn -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT main:app
