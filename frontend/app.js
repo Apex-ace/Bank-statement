@@ -124,13 +124,10 @@ document.addEventListener('DOMContentLoaded', () => {
         processCaptureButton.disabled = true;
 
         try {
-            // --- THIS IS THE CORRECTED LINE ---
             const response = await fetch("https://bank-statement-backend-k3xn.onrender.com/upload", {
                 method: "POST",
                 body: formData
             });
-            // --- END OF CORRECTION ---
-
             const data = await response.json();
 
             if (!response.ok) {
