@@ -14,7 +14,6 @@ services:
     name: bank-statement-frontend
     runtime: static
     repo: https://github.com/Apex-ace/Bank-statement
-    plan: free
     rootDir: frontend
     routes:
       - type: rewrite
