@@ -16,9 +16,9 @@ app = FastAPI(
     description="Upload bank statements (PDF or Image) and get structured JSON data back, powered by PydanticAI."
 )
 
-# Add your deployed frontend URL here AFTER you deploy it
+
 origins = [
-    # "https://your-frontend-app-name.onrender.com", # <-- You will add this later
+    "https://bank-statement-frontend-k3xn.onrender.com",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:8080",

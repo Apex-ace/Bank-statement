@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // --- THIS IS THE CORRECTED LINE ---
-            const response = await fetch("https://virtuous-celebration-production.up.railway.app/upload", {
+            const response = await fetch("https://bank-statement-backend-k3xn.onrender.com/upload", {
                 method: "POST",
                 body: formData
             });
@@ -158,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
             capturedBlob = null;
         }
     }
-    
+
     function setStatus(message, type) {
         statusMessage.textContent = message;
         statusMessage.className = type;
