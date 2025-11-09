@@ -1,4 +1,7 @@
 services:
+  # -----------------
+  # Backend Service (from Dockerfile)
+  # -----------------
   - type: web
     name: bank-statement-backend
     runtime: docker
@@ -10,7 +13,12 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.11"
-  - type: static_site 
+
+
+  # -----------------
+  # Frontend Service (Static Site)
+  # -----------------
+  - type: static
     name: bank-statement-frontend
     repo: https://github.com/Apex-ace/Bank-statement
     plan: free
