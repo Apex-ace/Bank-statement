@@ -1,20 +1,29 @@
 services:
+  # -----------------
+  # Backend Service
+  # -----------------
   - type: web
     name: bank-statement-backend
     runtime: docker
     repo: https://github.com/Apex-ace/Bank-statement
     dockerfilePath: ./Dockerfile
     plan: free
-    healthCheckPath: /
+    healthCheck:
+      path: /
     envVars:
       - key: PYTHON_VERSION
         value: "3.11"
+      # IMPORTANT: Add your GOOGLE_API_KEY in the Render
+      # dashboard's 'Environment' tab after deploying.
 
+  # -----------------
+  # Frontend Service
+  # -----------------
   - type: web
     name: bank-statement-frontend
     runtime: static
     repo: https://github.com/Apex-ace/Bank-statement
-    rootDir: frontend
+    staticPublishPath: frontend  
     routes:
       - type: rewrite
         source: /*
