@@ -8,8 +8,7 @@ services:
     repo: https://github.com/Apex-ace/Bank-statement
     dockerfilePath: ./Dockerfile
     plan: free
-    healthCheck:
-      path: /
+    healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION
         value: "3.11"
@@ -23,7 +22,8 @@ services:
     name: bank-statement-frontend
     runtime: static
     repo: https://github.com/Apex-ace/Bank-statement
-    staticPublishPath: frontend  
+    # The folder where your index.html is
+    staticPublishPath: frontend  # <-- THIS IS THE FIX
     routes:
       - type: rewrite
         source: /*
