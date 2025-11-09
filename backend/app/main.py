@@ -7,19 +7,18 @@ import uvicorn
 import os
 from typing import List
 
-# --- FIX: Removed the leading dots ---
+# FIX: Import from 'logic' and 'models' (no dots)
 from logic import get_text_from_pdf, get_text_from_image, extract_raw_transactions
 from models import StatementData, Transaction, RawStatementData, RawTransaction
-# --- END FIX ---
 
 app = FastAPI(
     title="Statement Extractor AI",
     description="Upload bank statements (PDF or Image) and get structured JSON data back, powered by PydanticAI."
 )
 
-# Add your deployed frontend URL here
+# Add your deployed frontend URL here AFTER you deploy it
 origins = [
-    "https://your-frontend-app-name.onrender.com", # <--- Remember to change this
+    # "https://your-frontend-app-name.onrender.com", # <-- You will add this later
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "http://localhost:8080",
@@ -116,5 +115,6 @@ async def upload_statement(file: UploadFile = File(...)):
         print(f"Unexpected error: {e}")
         raise HTTPException(status_code=500, detail="An unexpected error occurred.")
 
+# This part is only for local development
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

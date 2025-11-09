@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: bank-statement-backend
+    runtime: docker
+    repo: https://github.com/Apex-ace/Bank-statement
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheck:
+      path: /
+    envVars:
+      - key: 'AIzaSyDGisna7FUkrp-b2y8I7C6W1z7EDSaRgyI'
+        value: YOUR_SECRET_API_KEY_HERE
+      - key: PYTHON_VERSION
+        value: "3.11"
+
+  - type: static
+    name: bank-statement-frontend
+    repo: https://github.com/Apex-ace/Bank-statement
+    plan: free
+    rootDir: ./frontend
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
