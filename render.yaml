@@ -16,9 +16,12 @@ services:
     repo: https://github.com/Apex-ace/Bank-statement
     runtime: static
     plan: free
-    rootDir: ./frontend
+    rootDir: frontend
     buildCommand: ""
     staticPublishPath: .
+    envVars:
+      - key: SKIP_INSTALL_DEPS
+        value: "true"
     routes:
       - type: rewrite
         source: /*
