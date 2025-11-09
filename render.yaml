@@ -18,7 +18,7 @@ services:
   # -----------------
   # Frontend Service (Static Site)
   # -----------------
-  - type: static
+  - type: static_site
     name: bank-statement-frontend
     repo: https://github.com/Apex-ace/Bank-statement
     plan: free
