@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    async function processFile(file) {
+   async function processFile(file) {
         const formData = new FormData();
         formData.append('file', file);
 
@@ -124,13 +124,12 @@ document.addEventListener('DOMContentLoaded', () => {
         processCaptureButton.disabled = true;
 
         try {
-            // --- KEY CHANGE ---
-            // Replace this URL with your deployed backend API URL
-            const response = await fetch("https://your-backend-api-name.onrender.com/upload", {
+            // --- THIS IS THE CORRECTED LINE ---
+            const response = await fetch("https://virtuous-celebration-production.up.railway.app/upload", {
                 method: "POST",
                 body: formData
             });
-            // --- END CHANGE ---
+            // --- END OF CORRECTION ---
 
             const data = await response.json();
 
@@ -159,7 +158,7 @@ document.addEventListener('DOMContentLoaded', () => {
             capturedBlob = null;
         }
     }
-
+    
     function setStatus(message, type) {
         statusMessage.textContent = message;
         statusMessage.className = type;
