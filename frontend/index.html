@@ -12,19 +12,49 @@
     <div class="container">
         <header>
             <h1>Statement Extractor</h1>
-            <p>Upload a PDF bank statement (text or scanned)</p>
+            <p>Upload a PDF, or scan a document with your camera.</p>
         </header>
 
         <div class="card upload-card">
-            <h3>Upload Your Statement</h3>
-            <input type="file" id="pdfUpload" accept=".pdf" />
-            <button id="uploadButton">Process File</button>
+            <div class="tab-container">
+                <button class="tab-btn active" data-tab="upload">Upload PDF</button>
+                <button class="tab-btn" data-tab="scan">Scan Document</button>
+            </div>
+
+            <div id="upload" class="tab-content active">
+                <h3>Upload Your Statement</h3>
+                <input type="file" id="pdfUpload" accept=".pdf" />
+                <button id="uploadButton" class="btn-primary">Process PDF</button>
+            </div>
+
+            <div id="scan" class="tab-content">
+                <h3>Scan with Camera</h3>
+                <div class="camera-container">
+                    <video id="videoFeed" playsinline autoplay muted></video>
+                    <canvas id="captureCanvas" style="display: none;"></canvas>
+                    
+                    <div class="camera-controls">
+                        <button id="startCameraButton" class="btn-secondary">Start Camera</button>
+                        <button id="captureButton" class="btn-action" disabled>Capture Image</button>
+                    </div>
+                    
+                    <div id="capturePreviewContainer" style="display: none;">
+                        <h4>Captured Image</h4>
+                        <img id="capturePreview" alt="Capture preview"/>
+                        <button id="processCaptureButton" class="btn-primary">Process This Capture</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="loader" class="loader" style="display: none;"></div>
             <div id="statusMessage"></div>
         </div>
 
         <div class="card results-card" style="display: none;">
-            <h3>Extracted Transactions</h3>
+            <div class="results-header">
+                <h3>Extracted Transactions</h3>
+                <button id="clearGridButton" class="btn-danger">Clear All</button>
+            </div>
             <div class="summary-bar">
                 <div>Total Credit: <strong id="totalCredit">...</strong></div>
                 <div>Total Debit: <strong id="totalDebit">...</strong></div>

@@ -1,14 +1,10 @@
 fastapi
-uvicorn[standard]
-python-dotenv
-python-multipart
-
-# PydanticAI + Gemini (Google) support
-pydantic-ai[google]
+uvicorn
+gunicorn
+pydantic-ai
 google-generativeai
-
-# PDF and OCR utilities
-pymupdf
-pdf2image
+python-dotenv
+PyMuPDF
 pytesseract
+pdf2image
 Pillow

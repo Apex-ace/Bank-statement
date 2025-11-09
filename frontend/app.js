@@ -1,34 +1,35 @@
 document.addEventListener('DOMContentLoaded', () => {
-    
 
     const gridOptions = {
-
         columnDefs: [
-            { field: "date", sortable: true, filter: true, flex: 1 },
-            { field: "description", sortable: true, filter: true, flex: 3 },
-            { 
-                field: "amount", 
-                sortable: true, 
-                filter: true, 
+            { field: "date", sortable: true, filter: true, flex: 1.5, resizable: true },
+            { field: "description", sortable: true, filter: true, flex: 3, resizable: true },
+            {
+                field: "amount",
+                sortable: true,
+                filter: true,
                 flex: 1,
-                valueFormatter: params => 'Rs' + params.value.toFixed(2), 
+                resizable: true,
+                valueFormatter: params => params.value ? 'Rs' + params.value.toFixed(2) : '',
                 cellStyle: params => (params.data.transaction_type === 'Debit' ? { color: '#e74c3c' } : { color: '#2ecc71' })
             },
-            { 
-                field: "transaction_type", 
-                sortable: true, 
-                filter: true, 
+            {
+                field: "transaction_type",
+                sortable: true,
+                filter: true,
                 flex: 1,
+                resizable: true,
                 cellRenderer: params => {
                     const color = params.value === 'Debit' ? '#e74c3c' : '#2ecc71';
                     return `<span style="color: ${color}; font-weight: bold;">${params.value}</span>`;
                 }
             },
-            { 
-                field: "balance", 
-                sortable: true, 
-                filter: true, 
+            {
+                field: "balance",
+                sortable: true,
+                filter: true,
                 flex: 1,
+                resizable: true,
                 valueFormatter: params => params.value ? 'Rs' + params.value.toFixed(2) : 'N/A'
             }
         ],
@@ -36,13 +37,11 @@ document.addEventListener('DOMContentLoaded', () => {
             resizable: true,
             filter: true,
         },
-        rowData: [] 
+        rowData: []
     };
-
 
     const gridDiv = document.querySelector('#transactionGrid');
     const gridApi = agGrid.createGrid(gridDiv, gridOptions);
-
 
     const uploadButton = document.getElementById('uploadButton');
     const pdfUpload = document.getElementById('pdfUpload');
@@ -52,33 +51,86 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportCsvButton = document.getElementById('exportCsvButton');
     const totalCreditEl = document.getElementById('totalCredit');
     const totalDebitEl = document.getElementById('totalDebit');
+    const clearGridButton = document.getElementById('clearGridButton');
 
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
 
-    uploadButton.addEventListener('click', handleUpload);
-    exportCsvButton.addEventListener('click', () => {
-        gridApi.exportDataAsCsv();
-    });
+    const startCameraButton = document.getElementById('startCameraButton');
+    const captureButton = document.getElementById('captureButton');
+    const processCaptureButton = document.getElementById('processCaptureButton');
+    const videoFeed = document.getElementById('videoFeed');
+    const captureCanvas = document.getElementById('captureCanvas');
+    const capturePreview = document.getElementById('capturePreview');
+    const capturePreviewContainer = document.getElementById('capturePreviewContainer');
+    
+    let currentVideoStream = null;
+    let capturedBlob = null;
 
-    async function handleUpload() {
+    uploadButton.addEventListener('click', () => {
         const file = pdfUpload.files[0];
         if (!file) {
             setStatus('Please select a PDF file first.', 'error');
             return;
         }
+        processFile(file);
+    });
 
+    exportCsvButton.addEventListener('click', () => {
+        gridApi.exportDataAsCsv({
+            fileName: `transactions-${new Date().toISOString().split('T')[0]}.csv`
+        });
+    });
+
+    clearGridButton.addEventListener('click', () => {
+        gridApi.setGridOption('rowData', []);
+        calculateSummary([]);
+        resultsCard.style.display = 'none';
+        setStatus('Grid cleared.', 'info');
+    });
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            button.classList.add('active');
+            document.getElementById(button.dataset.tab).classList.add('active');
+            
+            if (button.dataset.tab !== 'scan' && currentVideoStream) {
+                stopCamera();
+            }
+        });
+    });
+
+    startCameraButton.addEventListener('click', startCamera);
+    captureButton.addEventListener('click', captureImage);
+    processCaptureButton.addEventListener('click', () => {
+        if (capturedBlob) {
+            const file = new File([capturedBlob], "capture.jpg", { type: "image/jpeg" });
+            processFile(file);
+            capturePreviewContainer.style.display = 'none';
+            captureButton.disabled = false;
+        }
+    });
+
+    async function processFile(file) {
         const formData = new FormData();
         formData.append('file', file);
 
-        setStatus('Processing file...', 'info');
+        setStatus(`Processing ${file.name}...`, 'info');
         loader.style.display = 'block';
         uploadButton.disabled = true;
-        resultsCard.style.display = 'none';
+        processCaptureButton.disabled = true;
 
         try {
-        const response = await fetch('https://statement-extractor-backend.onrender.com/upload', {
-            method: 'POST',
-            body: formData
-        });
+            // --- KEY CHANGE ---
+            // Replace this URL with your deployed backend API URL
+            const response = await fetch("https://your-backend-api-name.onrender.com/upload", {
+                method: "POST",
+                body: formData
+            });
+            // --- END CHANGE ---
 
             const data = await response.json();
 
@@ -86,12 +138,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(data.detail || 'An unknown error occurred.');
             }
 
-            setStatus(`Successfully extracted ${data.transactions.length} transactions.`, 'success');
+            setStatus(`Successfully extracted ${data.transactions.length} transactions from ${file.name}.`, 'success');
             resultsCard.style.display = 'block';
+
+            const newTransactions = data.transactions;
+            const existingTransactions = gridApi.getGridOption('rowData') || [];
+            const allTransactions = existingTransactions.concat(newTransactions);
             
-            gridApi.setGridOption('rowData', data.transactions);
-            
-            calculateSummary(data.transactions);
+            gridApi.setGridOption('rowData', allTransactions);
+            calculateSummary(allTransactions);
 
         } catch (error) {
             console.error('Upload failed:', error);
@@ -99,12 +154,15 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             loader.style.display = 'none';
             uploadButton.disabled = false;
+            processCaptureButton.disabled = false;
+            pdfUpload.value = null;
+            capturedBlob = null;
         }
     }
 
     function setStatus(message, type) {
         statusMessage.textContent = message;
-        statusMessage.className = type; // 'error', 'success', 'info'
+        statusMessage.className = type;
     }
 
     function calculateSummary(transactions) {
@@ -121,7 +179,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
         totalCreditEl.textContent = `Rs${totalCredit.toFixed(2)}`;
         totalDebitEl.textContent = `Rs${totalDebit.toFixed(2)}`;
-        totalDebitEl.style.color = '#e74c3c';
-        totalCreditEl.style.color = '#2ecc71';
+    }
+
+    async function startCamera() {
+        if (currentVideoStream) {
+            stopCamera();
+            return;
+        }
+        
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'environment' }
+            });
+            currentVideoStream = stream;
+            videoFeed.srcObject = stream;
+            videoFeed.style.display = 'block';
+            startCameraButton.textContent = 'Stop Camera';
+            captureButton.disabled = false;
+            capturePreviewContainer.style.display = 'none';
+        } catch (err) {
+            console.error("Error accessing camera:", err);
+            setStatus('Error: Could not access camera. Check permissions.', 'error');
+            if (err.name === "NotAllowedError") {
+                 setStatus('Error: Camera permission denied. Please allow camera access in your browser settings.', 'error');
+            }
+        }
+    }
+
+    function stopCamera() {
+        if (currentVideoStream) {
+            currentVideoStream.getTracks().forEach(track => track.stop());
+            currentVideoStream = null;
+            videoFeed.srcObject = null;
+            videoFeed.style.display = 'none';
+            startCameraButton.textContent = 'Start Camera';
+            captureButton.disabled = true;
+            capturePreviewContainer.style.display = 'none';
+        }
+    }
+
+    function captureImage() {
+        if (!currentVideoStream) return;
+
+        captureCanvas.width = videoFeed.videoWidth;
+        captureCanvas.height = videoFeed.videoHeight;
+        
+        const context = captureCanvas.getContext('2d');
+        context.drawImage(videoFeed, 0, 0, captureCanvas.width, captureCanvas.height);
+
+        captureCanvas.toBlob((blob) => {
+            capturedBlob = blob;
+            capturePreview.src = URL.createObjectURL(blob);
+            capturePreviewContainer.style.display = 'flex';
+            processCaptureButton.disabled = false;
+            captureButton.disabled = true;
+        }, 'image/jpeg', 0.9);
     }
 });

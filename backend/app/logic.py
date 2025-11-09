@@ -1,85 +1,113 @@
 import os
-import fitz  # PyMuPDF
+import fitz
 from PIL import Image
 import pytesseract
 from pdf2image import convert_from_bytes
+import asyncio
+import io
+import platform 
 
 from pydantic_ai import Agent
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.providers.google import GoogleProvider
+try:
+    from pydantic_ai.models.openai import OpenAIModel
+    from pydantic_ai.providers.openai import OpenAIProvider
+    OPENAI_AVAILABLE = True
+except Exception:
+    OPENAI_AVAILABLE = False
 
-from .models import StatementData
+from .models import RawStatementData
 
-# --- PydanticAI Setup with Gemini (via GoogleModel) ---
-# Ensure you have GOOGLE_API_KEY in your environment
-google_provider = GoogleProvider(api_key=os.getenv("GOOGLE_API_KEY"))
-llm = GoogleModel("gemini-2.5-flash", provider=google_provider)
-agent = Agent(model=llm)
+openai_agent = None
+google_agent = None
+
+if OPENAI_AVAILABLE and os.getenv("OPENAI_API_KEY"):
+    openai_provider = OpenAIProvider(api_key=os.getenv("OPENAI_API_KEY"))
+    openai_llm = OpenAIModel("gpt-5", provider=openai_provider)
+    openai_agent = Agent(model=openai_llm)
+
+if os.getenv("GOOGLE_API_KEY"):
+    google_provider = GoogleProvider(api_key=os.getenv("GOOGLE_API_KEY"))
+    google_llm = GoogleModel("gemini-2.5-flash", provider=google_provider)
+    google_agent = Agent(model=google_llm)
 
 
-def process_pdf(file_bytes: bytes) -> str:
-    """
-    Extracts text from a PDF.
-    Handles both text-based and scanned (image-based) PDFs.
-    """
+def get_text_from_pdf(file_bytes: bytes) -> str:
     full_text = ""
-    
-    # 1. Try direct text extraction with PyMuPDF
     try:
         with fitz.open(stream=file_bytes, filetype="pdf") as doc:
             for page in doc:
                 full_text += page.get_text()
-    except Exception as e:
-        print(f"PyMuPDF error: {e}. Defaulting to OCR.")
-        full_text = ""  # Force OCR fallback
+    except Exception:
+        full_text = ""
 
-    # 2. If text is minimal, it’s likely scanned → use OCR
     if len(full_text.strip()) < 100:
-        print("Minimal text extracted. Attempting OCR...")
         try:
+            # This is the simple, cross-platform version
             images = convert_from_bytes(file_bytes)
+                
             ocr_text = ""
             for img in images:
                 ocr_text += pytesseract.image_to_string(img)
             full_text = ocr_text
-            print("OCR extraction successful.")
-        except Exception as ocr_error:
-            print(f"OCR processing failed: {ocr_error}")
-            if not full_text:
-                raise ValueError("Both text extraction and OCR failed.")
-    
+        except Exception as e:
+            print(f"pdf2image OCR failed: {e}")
+            full_text = ""
     return full_text
 
 
-async def extract_transactions(statement_text: str) -> StatementData:
-    """
-    Uses PydanticAI to extract structured transaction data from raw text.
-    """
-    if not statement_text.strip():
-        raise ValueError("The provided PDF is empty or could not be read.")
+def get_text_from_image(file_bytes: bytes) -> str:
+    try:
+        img = Image.open(io.BytesIO(file_bytes))
+        ocr_text = pytesseract.image_to_string(img)
+        return ocr_text
+    except Exception as e:
+        print(f"Image OCR failed: {e}")
+        return ""
 
-    print("Sending text to PydanticAI agent...")
+
+async def _run_with_agent(agent: Agent, prompt: str) -> RawStatementData:
+    result = await agent.run(prompt, output_type=RawStatementData)
+    return result.output
+
+
+async def extract_raw_transactions(statement_text: str) -> RawStatementData:
+    if not statement_text.strip():
+        raise ValueError("The provided document is empty or could not be read.")
 
     prompt = f"""
-    You are an expert financial analyst. Please extract all individual transactions
-    from the following bank statement text. Ignore summary sections, marketing
-    text, and disclaimers. Focus only on the itemized list of transactions.
-    
-    Statement Text:
-    ---
-    {statement_text[:10000]}
-    ---
-    
-    Extract all transactions into the provided JSON schema.
-    """
+You are an expert data entry clerk. Extract all individual transaction lines
+from the following bank statement text. Pay close attention to the 'Debits' and 'Credits' columns.
+If a date is on one line, it applies to the lines below it until a new date appears.
+Extract 'account_holder' and 'statement_period' if you find them.
+Ignore summary lines like 'Balance brought forward'.
 
-    try:
-        result = await agent.run(  # <-- Added 'await'
-            prompt,
-            output_type=StatementData  # <-- Changed to 'output_type'
-        )
-        print("PydanticAI extraction successful.")
-        return result.output  # .output contains validated Pydantic model
-    except Exception as e:
-        print(f"PydanticAI extraction failed: {e}")
-        raise RuntimeError(f"Failed to parse statement: {e}")
+Statement Text:
+---
+{statement_text[:10000]}
+---
+
+Extract all transaction lines you see into the provided JSON schema.
+"""
+
+    last_exc = None
+
+    if openai_agent:
+        try:
+            return await _run_with_agent(openai_agent, prompt)
+        except Exception as e:
+            last_exc = e
+            msg = str(e).lower()
+            if not ("insufficient_quota" in msg or "quota" in msg or "429" in msg or "rate limit" in msg):
+                raise RuntimeError(f"OpenAI error: {e}") from e
+
+    if google_agent:
+        try:
+            return await _run_with_agent(google_agent, prompt)
+        except Exception as e:
+            raise RuntimeError(f"Both primary and fallback LLMs failed. Last error: {e}") from e
+
+    if last_exc:
+        raise RuntimeError(f"No available LLM succeeded. Primary error: {last_exc}")
+    raise RuntimeError("No LLM is configured. Set OPENAI_API_KEY and/or GOOGLE_API_KEY in env.")
