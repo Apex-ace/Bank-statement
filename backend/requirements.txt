@@ -7,4 +7,4 @@ pytesseract
 pdf2image
 Pillow
 pydantic-ai-slim
-pydantic-ai-google-genai
+google-generativeai
