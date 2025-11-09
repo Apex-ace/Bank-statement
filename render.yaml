@@ -1,6 +1,6 @@
 services:
   # -----------------
-  # Backend Service (from Dockerfile)
+  # Backend Service
   # -----------------
   - type: web
     name: bank-statement-backend
@@ -17,13 +17,13 @@ services:
       # dashboard's 'Environment' tab after deploying.
 
   # -----------------
-  # Frontend Service (Static Site)
+  # Frontend Service
   # -----------------
-  - type: web
+  - type: static_site  # <-- This is the correct type
     name: bank-statement-frontend
     repo: https://github.com/Apex-ace/Bank-statement
-    runtime: static
     plan: free
+    # The folder where your index.html is
     rootDir: frontend
     routes:
       - type: rewrite
