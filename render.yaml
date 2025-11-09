@@ -1,6 +1,6 @@
 services:
   # -----------------
-  # Backend Service
+  # Backend Service (from Dockerfile)
   # -----------------
   - type: web
     name: bank-statement-backend
@@ -13,10 +13,11 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.11"
-      
+      # IMPORTANT: Add your GOOGLE_API_KEY in the Render
+      # dashboard's 'Environment' tab after deploying.
 
   # -----------------
-  # Frontend Service
+  # Frontend Service (Static Site)
   # -----------------
   - type: web
     name: bank-statement-frontend
@@ -24,11 +25,6 @@ services:
     runtime: static
     plan: free
     rootDir: frontend
-    buildCommand: ""
-    staticPublishPath: .
-    envVars:
-      - key: SKIP_INSTALL_DEPS
-        value: "true"
     routes:
       - type: rewrite
         source: /*
