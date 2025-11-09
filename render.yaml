@@ -8,12 +8,9 @@ services:
     healthCheck:
       path: /
     envVars:
-      - key: 'AIzaSyDGisna7FUkrp-b2y8I7C6W1z7EDSaRgyI'
-        value: YOUR_SECRET_API_KEY_HERE
       - key: PYTHON_VERSION
         value: "3.11"
-
-  - type: static
+  - type: static_site 
     name: bank-statement-frontend
     repo: https://github.com/Apex-ace/Bank-statement
     plan: free
