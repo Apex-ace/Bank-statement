@@ -19,8 +19,9 @@ services:
   # -----------------
   # Frontend Service
   # -----------------
-  - type: static_site  # <-- This is the correct type
+  - type: web         # <-- This is the correct type
     name: bank-statement-frontend
+    runtime: static     # <-- This specifies it's a static site
     repo: https://github.com/Apex-ace/Bank-statement
     plan: free
     # The folder where your index.html is
