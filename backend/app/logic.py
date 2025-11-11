@@ -2,12 +2,10 @@ import os
 import fitz
 from PIL import Image
 import pytesseract
-from pdf2image import convert_from_bytes
+from pdf2image import convert_from_bytes, get_pdf_page_count
 import asyncio
 import io
-import platform # Import platform to check OS
-
-# (All Windows paths have been removed)
+import platform 
 
 from pydantic_ai import Agent
 from pydantic_ai.models.google import GoogleModel
@@ -19,7 +17,6 @@ try:
 except Exception:
     OPENAI_AVAILABLE = False
 
-# FIX: Import from 'models' (no dot)
 from models import RawStatementData
 
 openai_agent = None
@@ -27,11 +24,13 @@ google_agent = None
 
 if OPENAI_AVAILABLE and os.getenv("OPENAI_API_KEY"):
     openai_provider = OpenAIProvider(api_key=os.getenv("OPENAI_API_KEY"))
-    openai_llm = OpenAIModel("gpt-5", provider=openai_provider)
+    # Using gpt-4o-mini as it is much cheaper and faster than gpt-5
+    openai_llm = OpenAIModel("gpt-4o-mini", provider=openai_provider) 
     openai_agent = Agent(model=openai_llm)
 
 if os.getenv("GOOGLE_API_KEY"):
     google_provider = GoogleProvider(api_key=os.getenv("GOOGLE_API_KEY"))
+    # Using flash as it's fast and efficient
     google_llm = GoogleModel("gemini-2.5-flash", provider=google_provider)
     google_agent = Agent(model=google_llm)
 
@@ -39,24 +38,48 @@ if os.getenv("GOOGLE_API_KEY"):
 def get_text_from_pdf(file_bytes: bytes) -> str:
     full_text = ""
     try:
+        # 1. First, try fast text extraction with PyMuPDF (fitz)
         with fitz.open(stream=file_bytes, filetype="pdf") as doc:
             for page in doc:
                 full_text += page.get_text()
-    except Exception:
+    except Exception as e:
+        print(f"Fitz (PyMuPDF) extraction failed: {e}")
         full_text = ""
 
+    # 2. If fast extraction fails (e.g., scanned PDF), use slow, memory-efficient OCR
     if len(full_text.strip()) < 100:
+        print("Fast text extraction failed, falling back to OCR...")
+        ocr_text = ""
         try:
-            # This is the simple, cross-platform version
-            images = convert_from_bytes(file_bytes)
+            # Get total page count
+            page_count = get_pdf_page_count(file_bytes)
+
+            # Loop and process ONE page at a time to save RAM
+            for i in range(1, page_count + 1):
+                print(f"OCR processing page {i}/{page_count}...")
                 
-            ocr_text = ""
-            for img in images:
-                ocr_text += pytesseract.image_to_string(img)
+                # Convert only the single, current page
+                images = convert_from_bytes(
+                    file_bytes,
+                    first_page=i,
+                    last_page=i,
+                    fmt='png',  # Specify a format
+                    thread_count=1 # Use a single thread to conserve resources
+                )
+                
+                if images:
+                    # Run OCR on that single image
+                    ocr_text += pytesseract.image_to_string(images[0])
+                    # Clear the image from memory
+                    images[0].close()
+
             full_text = ocr_text
+            print("OCR processing complete.")
         except Exception as e:
             print(f"pdf2image OCR failed: {e}")
-            full_text = ""
+            # Return whatever fitz got, even if it was empty
+            return full_text
+            
     return full_text
 
 
@@ -79,16 +102,20 @@ async def extract_raw_transactions(statement_text: str) -> RawStatementData:
     if not statement_text.strip():
         raise ValueError("The provided document is empty or could not be read.")
 
+    # Truncate prompt to save on tokens and processing
+    # 10000 characters is still very large
+    truncated_text = statement_text[:12000]
+
     prompt = f"""
 You are an expert data entry clerk. Extract all individual transaction lines
-from the following bank statement text. Pay close attention to the 'Debits' and 'Credits' columns.
+from the following bank statements text. Pay close attention to the 'Debits' and 'Credits' columns.
 If a date is on one line, it applies to the lines below it until a new date appears.
 Extract 'account_holder' and 'statement_period' if you find them.
 Ignore summary lines like 'Balance brought forward'.
 
 Statement Text:
 ---
-{statement_text[:10000]}
+{truncated_text}
 ---
 
 Extract all transaction lines you see into the provided JSON schema.
@@ -96,21 +123,27 @@ Extract all transaction lines you see into the provided JSON schema.
 
     last_exc = None
 
+    # Try Google Gemini first (cheaper and faster)
+    if google_agent:
+        try:
+            return await _run_with_agent(google_agent, prompt)
+        except Exception as e:
+            last_exc = e
+            print(f"Google Gemini failed: {e}")
+            # Don't re-raise, fall through to OpenAI
+
+    # Fallback to OpenAI
     if openai_agent:
         try:
+            print("Falling back to OpenAI...")
             return await _run_with_agent(openai_agent, prompt)
         except Exception as e:
+            print(f"OpenAI failed: {e}")
             last_exc = e
             msg = str(e).lower()
             if not ("insufficient_quota" in msg or "quota" in msg or "429" in msg or "rate limit" in msg):
                 raise RuntimeError(f"OpenAI error: {e}") from e
 
-    if google_agent:
-        try:
-            return await _run_with_agent(google_agent, prompt)
-        except Exception as e:
-            raise RuntimeError(f"Both primary and fallback LLMs failed. Last error: {e}") from e
-
     if last_exc:
-        raise RuntimeError(f"No available LLM succeeded. Primary error: {last_exc}")
+        raise RuntimeError(f"Both primary and fallback LLMs failed. Last error: {last_exc}")
     raise RuntimeError("No LLM is configured. Set OPENAI_API_KEY and/or GOOGLE_API_KEY in env.")
