@@ -1,5 +1,5 @@
 import os
-import fitz 
+import fitz  # PyMuPDF
 from PIL import Image
 import pytesseract
 from pdf2image import convert_from_bytes
@@ -54,8 +54,6 @@ def get_text_from_pdf(file_bytes: bytes) -> str:
         ocr_text = ""
         
         # If fitz failed to get a page_count, we can't loop.
-        # As a last resort, try to convert just the first page.
-        # This avoids the memory crash but might miss data on other pages.
         if page_count == 0:
             print("Warning: Could not get page count. Only processing first page to avoid memory crash.")
             page_count = 1 # Process just one page
@@ -82,7 +80,6 @@ def get_text_from_pdf(file_bytes: bytes) -> str:
             print("OCR processing complete.")
         except Exception as e:
             print(f"pdf2image OCR failed: {e}")
-            # Return whatever fitz got, even if it was empty
             return full_text
             
     return full_text
@@ -107,7 +104,8 @@ async def extract_raw_transactions(statement_text: str) -> RawStatementData:
     if not statement_text.strip():
         raise ValueError("The provided document is empty or could not be read.")
 
-    truncated_text = statement_text[:12000]
+    # Increased truncation limit for very long documents
+    truncated_text = statement_text[:30000]
 
     prompt = f"""
 You are an expert data entry clerk. Extract all individual transaction lines

@@ -8,8 +8,7 @@ RUN apt-get update && apt-get install -y \
 
 COPY ./backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
 COPY ./backend/app/ .
 
 EXPOSE 10000
-CMD gunicorn -k uvicorn.workers.UvicornWorker --timeout 200 -b 0.0.0.0:$PORT main:app
+CMD gunicorn -w 1 -k uvicorn.workers.UvicornWorker --timeout 300 -b 0.0.0.0:$PORT main:app
