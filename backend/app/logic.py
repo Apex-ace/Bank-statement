@@ -1,8 +1,8 @@
 import os
-import fitz
+import fitz 
 from PIL import Image
 import pytesseract
-from pdf2image import convert_from_bytes, get_pdf_page_count
+from pdf2image import convert_from_bytes
 import asyncio
 import io
 import platform 
@@ -24,36 +24,43 @@ google_agent = None
 
 if OPENAI_AVAILABLE and os.getenv("OPENAI_API_KEY"):
     openai_provider = OpenAIProvider(api_key=os.getenv("OPENAI_API_KEY"))
-    # Using gpt-4o-mini as it is much cheaper and faster than gpt-5
     openai_llm = OpenAIModel("gpt-4o-mini", provider=openai_provider) 
     openai_agent = Agent(model=openai_llm)
 
 if os.getenv("GOOGLE_API_KEY"):
     google_provider = GoogleProvider(api_key=os.getenv("GOOGLE_API_KEY"))
-    # Using flash as it's fast and efficient
     google_llm = GoogleModel("gemini-2.5-flash", provider=google_provider)
     google_agent = Agent(model=google_llm)
 
 
 def get_text_from_pdf(file_bytes: bytes) -> str:
     full_text = ""
+    page_count = 0
     try:
-        # 1. First, try fast text extraction with PyMuPDF (fitz)
+        # 1. First, try fast text extraction and get page count
         with fitz.open(stream=file_bytes, filetype="pdf") as doc:
+            page_count = doc.page_count
             for page in doc:
                 full_text += page.get_text()
     except Exception as e:
-        print(f"Fitz (PyMuPDF) extraction failed: {e}")
+        print(f"Fitz (PyMuPDF) failed: {e}")
+        # If fitz fails, we can't get page count this way
         full_text = ""
+        page_count = 0 # Reset
 
     # 2. If fast extraction fails (e.g., scanned PDF), use slow, memory-efficient OCR
     if len(full_text.strip()) < 100:
         print("Fast text extraction failed, falling back to OCR...")
         ocr_text = ""
-        try:
-            # Get total page count
-            page_count = get_pdf_page_count(file_bytes)
+        
+        # If fitz failed to get a page_count, we can't loop.
+        # As a last resort, try to convert just the first page.
+        # This avoids the memory crash but might miss data on other pages.
+        if page_count == 0:
+            print("Warning: Could not get page count. Only processing first page to avoid memory crash.")
+            page_count = 1 # Process just one page
 
+        try:
             # Loop and process ONE page at a time to save RAM
             for i in range(1, page_count + 1):
                 print(f"OCR processing page {i}/{page_count}...")
@@ -63,14 +70,12 @@ def get_text_from_pdf(file_bytes: bytes) -> str:
                     file_bytes,
                     first_page=i,
                     last_page=i,
-                    fmt='png',  # Specify a format
-                    thread_count=1 # Use a single thread to conserve resources
+                    fmt='png',
+                    thread_count=1 
                 )
                 
                 if images:
-                    # Run OCR on that single image
                     ocr_text += pytesseract.image_to_string(images[0])
-                    # Clear the image from memory
                     images[0].close()
 
             full_text = ocr_text
@@ -102,8 +107,6 @@ async def extract_raw_transactions(statement_text: str) -> RawStatementData:
     if not statement_text.strip():
         raise ValueError("The provided document is empty or could not be read.")
 
-    # Truncate prompt to save on tokens and processing
-    # 10000 characters is still very large
     truncated_text = statement_text[:12000]
 
     prompt = f"""
@@ -123,14 +126,13 @@ Extract all transaction lines you see into the provided JSON schema.
 
     last_exc = None
 
-    # Try Google Gemini first (cheaper and faster)
+    # Try Google Gemini first
     if google_agent:
         try:
             return await _run_with_agent(google_agent, prompt)
         except Exception as e:
             last_exc = e
             print(f"Google Gemini failed: {e}")
-            # Don't re-raise, fall through to OpenAI
 
     # Fallback to OpenAI
     if openai_agent:
