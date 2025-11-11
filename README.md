@@ -3,7 +3,6 @@
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue?logo=python)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-blue?logo=fastapi)](https://fastapi.tiangolo.com/)
 [![PydanticAI](https://img.shields.io/badge/PydanticAI-blue?logo=pydantic)](https://github.com/pydantic/pydantic-ai)
-[![JavaScript](https://img.shields.io/badge/JavaScript-ES6%2B-yellow?logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 
 A full-stack AI-powered web application designed to extract and structure transaction data from bank statements. Upload a PDF or use your camera (including a live-scanning mode), and the system uses AI (Gemini/OpenAI) to parse the text and return a clean, tabular list of transactions.
 
@@ -76,7 +75,7 @@ The application is a decoupled full-stack project:
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://your-repo-url.com/statement-extractor](https://github.com/Apex-ace/Bank-statement)
+    git clone https://github.com/Apex-ace/Bank-statement
     cd statement-extractor
     ```
 
